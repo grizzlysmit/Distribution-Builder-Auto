@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.7
+=VERSION 1.0.8
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -437,6 +437,98 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
     return $Dir;
 } # multi method resolve-dir(Str:D $dir, Bool $relitive-to-home = True --> Str) is export #
 
+method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $from-path, Str:D $to-path-global,
+                    Str:D $to-path-local, Str:D $thing, Bool:D $debug, Str:D $base-library = $name, Bool:D $remove-old = False --> List) {
+    my Proc $r;
+    my Str $install-location;
+    $handle.say: "$?FILE\[$?LINE\] \$to-path-global == {$to-path-global.raku}" if $debug;
+    my $tmp = self.resolve-dir($to-path-global, $handle);
+    $handle.say: "$?FILE\[$?LINE\] \$to-path-global == {$to-path-global.raku}" if $debug;
+    if $*USER == 0 || ($tmp.Bool && $tmp.IO ~~ :rwx) {
+        $install-location = $tmp;
+    } else {
+        $handle.say: "$?FILE\[$?LINE\] \$to-path-global == {$to-path-global.raku}" if $debug;
+        my $temp = self.resolve-dir($to-path-local, $handle);
+        $handle.say: "$?FILE\[$?LINE\] \$to-path-global == {$to-path-global.raku}" if $debug;
+        self.die-handle($handle, "bad value for to-path-local") unless $temp.Bool;
+        $install-location = $temp;
+    }
+    $handle.say: "$?FILE\[$?LINE\] \$to-path-local == {$to-path-local.raku}" if $debug;
+    $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location.raku}" if $debug;
+    mkdir $install-location;
+    # remove all old libs #
+    if $remove-old {
+        my $old-lib-pattern = "$install-location/$base-library";
+        $handle.say: '$old-lib-pattern = ', $old-lib-pattern.raku if $debug;
+        my @old-libs = $old-lib-pattern.IO.dirname.IO.dir( text => rx/ ^^ $old-lib-pattern [ \. \d+ [ \. \d+ [ \. \d+ ]? ]? ]? $$ /).map: { .Str };
+        $handle.say: '@old-libs = ', @old-libs.raku if $debug;
+        $handle.say: "$?FILE\[$?LINE\]" if $debug;
+        $r = run 'pwd', :out($handle), :err($handle) if $debug;
+        #«««
+        for @old-libs -> $lib {
+            #$handle.say: '$lib = ', $lib.raku if $debug;
+            if $lib.IO ~~ :e && $lib.IO ~~ :d {
+                $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
+                rmtree($lib.IO) if $lib.IO ~~ :e;
+            } elsif $lib.IO ~~ :e  || $lib.IO ~~ :l {
+                $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
+                $lib.IO.unlink();
+            } else {
+                $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
+            }
+            CATCH {
+                when X::IO::Unlink {
+                    $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
+                    $handle.say: "$?FILE\[$?LINE\] { .^name}: {.Str}" if $debug;
+                    exit -9;
+                }
+                default {
+                    $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
+                    $handle.say: "$?FILE\[$?LINE\] { .^name}: {.Str}" if $debug;
+                    exit -10;
+                }
+            }
+        }
+        #»»»
+    }
+    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\]" if $debug;
+    # to-path-global
+    with $from-path {
+        my $from = "$from-path/$name";
+        my $to   = "$install-location/$name-to";
+        if $from.IO ~~ :f {
+            $r = run 'pwd', :out($handle), :err($handle) if $debug;
+            $handle.say: "$?FILE\[$?LINE\]" if $debug;
+            $handle.say: '$from = ', $from.raku if $debug;
+            $handle.say: '$to = ', $to.raku if $debug;
+            $handle.say: "$?FILE\[$?LINE\]" if $debug;
+            $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from, :out($handle), :err($handle) if $debug;
+            $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $to.IO.dirname, :out($handle), :err($handle) if $debug;
+            #$to.IO.unlink() if $to.IO ~~ :e;
+            $handle.say: "$?FILE\[$?LINE\]" if $debug;
+            $install-location.IO.mkdir;
+            $handle.say: '$from = ', $from.raku if $debug;
+            $handle.say: '$to = ', $to.raku if $debug;
+            $handle.say: "$?FILE\[$?LINE\]" if $debug;
+            self.die-handle($handle, "Error: Failed to install $thing: $name") unless $from.IO.copy($to.IO);
+            $handle.say: "$?FILE\[$?LINE\] \$thing == {$thing}" if $debug;
+        } elsif $from.IO ~~ :e {
+            given $from.IO {
+                when :d { self.die-handle($handle, "Error: \`$from' is a directory should be a regular file"); }
+                default { self.die-handle($handle, "Error: $from is not a regular file"); }
+            }
+        } else {
+            return False, $install-location;
+        }
+        $handle.say: "$?FILE\[$?LINE\] \$thing == {$thing}" if $debug;
+        return True, $install-location;
+    } else {
+        return False, $install-location;
+    }
+} #`««« method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $from-path, Str:D $to-path-global,
+                                   Str:D $to-path-local, Str:D $thing, Bool:D $debug, Str:D $base-library = $name, Bool:D $remove-old = False --> List) »»»
+
 
 method build(IO() $work-dir = $*CWD) {
     my Bool:D $debug = False;
@@ -465,6 +557,7 @@ method build(IO() $work-dir = $*CWD) {
     $handle.say: '%meta = ', %meta.raku if $debug;
     self.die-handle($handle, 'You need CMake to install this package!') unless shell 'which cmake';
     self.die-handle($handle, 'You need Make to install this package!') unless shell 'which make';
+    self.die-handle($handle, qq[field "lib" must be supplied inside field "build"]) without %meta«lib»;
 
     my Proc $r;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
@@ -541,6 +634,7 @@ method build(IO() $work-dir = $*CWD) {
 
     # Prepare library target
     my $library = "lib{ %meta<lib> }.so"; # If your cmake is setup properly, then it should start with 'lib'
+    my $base-library = $library;
     $handle.say: '$library = ', $library.raku if $debug;
     my %libraries;
     my %lib-versions;
@@ -565,56 +659,6 @@ method build(IO() $work-dir = $*CWD) {
     with %meta«install-local» {
         $install-local = %meta«install-local»;
     }
-    #$install ~= '/';
-    my Str $install-location;
-    $handle.say: "$?FILE\[$?LINE\] \$install == {$install.raku}" if $debug;
-    my $tmp = self.resolve-dir($install, $handle);
-    $handle.say: "$?FILE\[$?LINE\] \$install == {$install.raku}" if $debug;
-    if $*USER == 0 || ($tmp.Bool && $tmp.IO ~~ :rwx) {
-        $install-location = $tmp;
-    } else {
-        $handle.say: "$?FILE\[$?LINE\] \$install == {$install.raku}" if $debug;
-        my $temp = self.resolve-dir($install-local, $handle);
-        $handle.say: "$?FILE\[$?LINE\] \$install == {$install.raku}" if $debug;
-        self.die-handle($handle, "bad value for install-local") unless $temp.Bool;
-        $install-location = $temp;
-    }
-    $handle.say: "$?FILE\[$?LINE\] \$install-local == {$install-local.raku}" if $debug;
-    $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location.raku}" if $debug;
-    mkdir $install-location;
-    # remove all old libs #
-    my $old-lib-pattern = "$install-location/$library";
-    $handle.say: '$old-lib-pattern = ', $old-lib-pattern.raku if $debug;
-    my @old-libs = $old-lib-pattern.IO.dirname.IO.dir( text => rx/ ^^ $old-lib-pattern [ \. \d+ [ \. \d+ [ \. \d+ ]? ]? ]? $$ /).map: { .Str };
-    $handle.say: '@old-libs = ', @old-libs.raku if $debug;
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
-    #«««
-    for @old-libs -> $lib {
-        #$handle.say: '$lib = ', $lib.raku if $debug;
-        if $lib.IO ~~ :e && $lib.IO ~~ :d {
-            $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
-            rmtree($lib.IO) if $lib.IO ~~ :e;
-        } elsif $lib.IO ~~ :e  || $lib.IO ~~ :l {
-            $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
-            $lib.IO.unlink();
-        } else {
-            $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
-        }
-        CATCH {
-            when X::IO::Unlink {
-                $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
-                $handle.say: "$?FILE\[$?LINE\] { .^name}: {.Str}" if $debug;
-                exit -9;
-            }
-            default {
-                $handle.say: "$?FILE\[$?LINE\] \$lib == {$lib}" if $debug;
-                $handle.say: "$?FILE\[$?LINE\] { .^name}: {.Str}" if $debug;
-                exit -10;
-            }
-        }
-    }
-    #»»»
     $r = run 'pwd', :out($handle), :err($handle) if $debug;
     $handle.say: "$?FILE\[$?LINE\]" if $debug;
     with %meta«master-lib-version» {
@@ -627,65 +671,45 @@ method build(IO() $work-dir = $*CWD) {
 
 
     # Install
-    my $from = "$build-dir/$library";
-    my $to   = "$install-location/$library";
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
-    $handle.say: '$from = ', $from.raku if $debug;
-    $handle.say: '$to = ', $to.raku if $debug;
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from, :out($handle), :err($handle) if $debug;
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $to.IO.dirname, :out($handle), :err($handle) if $debug;
-    #$to.IO.unlink() if $to.IO ~~ :e;
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
-    $install-location.IO.mkdir;
-    $handle.say: '$from = ', $from.raku if $debug;
-    $handle.say: '$to = ', $to.raku if $debug;
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
-    self.die-handle($handle, "Failed to install lib: $library") unless $from.IO.copy($to.IO);
-    $handle.say: "$?FILE\[$?LINE\]" if $debug;
+    my ($ok, $install-location) = self.install-stuff($handle, $library, $library, $build-dir, $install, $install-local, 'library', $debug, $base-library, True);
+    $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location.raku}" if $debug;
+    # man page generation #
     my Str:D $man-number = '1';
     with %meta«man-number» {
         $man-number = %meta«man-number»;
     }
+    $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}" if $debug;
     my $man;
     with %meta«man» {
+        $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}\n\$man == {$man.raku}" if $debug;
         $man = self.subst-man-number(%meta«man», $man-number);
+        $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}\n\$man == {$man.raku}" if $debug;
     }
     my Str:D $man-name = '';
     with $man {
         $man-name = $man.IO.basename;
     }
-    my Str:D $man-install = "/usr/local/man/man1{$man-name}";
+    my Str:D $man-install = "/usr/local/man/man{$man-number}";
+    my Str:D $man-name-to = $man-name;
     with %meta«man-install» {
         $man-install = self.subst-man-number(%meta«man-install», $man-number);
+        $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}\n\$man-install == {$man-install.raku}" if $debug;
+        $man-name-to = $man-install.IO.basename;
+        $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}\n\$man-install == {$man-install.raku}" if $debug;
+        $man-install = $man-install.IO.dirname;
+        $handle.say: "$?FILE\[$?LINE\] \$man-number == {$man-number.raku}\n\$man-install == {$man-install.raku}" if $debug;
     }
-    my $man-install-local = "$home/man/man$man-number/{$man-name}";
+    my $man-install-local = "\$home/man/man$man-number";
     with %meta«man-install-local» {
         $man-install-local = self.subst-man-number(%meta«man-install-local», $man-number);
+        self.die-handle($handle, "Error: global and local man page name must match") unless $man-name-to eq $man-install-local.IO.basename;
+        $man-install-local = $man-install-local.IO.dirname;
+        $man-install-local = $man-install-local.IO.dirname;
     }
-    my Str $man-install-location;
-    $handle.say: "$?FILE\[$?LINE\] \$man-install == {$man-install}" if $debug;
-    if $*USER == 0 || self.resolve-dir($man-install, $handle).IO ~~ :rwx {
-        $man-install-location = self.resolve-dir($man-install, $handle);
-    } else {
-        $man-install-location = self.resolve-dir($man-install-local, $handle);
-    }
-    $man-install-location.IO.dirname.IO.mkdir;
-    $handle.say: "$?FILE\[$?LINE\] \$man-install-location == {$man-install-location}" if $debug;
-    $handle.say: "$?FILE\[$?LINE\] \$man-install-location.IO.dirname == {$man-install-location.IO.dirname}" if $debug;
-    with $man {
-        $handle.say: '$man = ', $man.raku if $debug;
-        $handle.say: '$man-install-location = ', $man-install-location.raku if $debug;
-        if $man.IO ~~ :e {
-            $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $man.IO.dirname, :out($handle), :err($handle) if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$man-install-location == {$man-install-location}" if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$man-install-location.IO.dirname == {$man-install-location.IO.dirname}" if $debug;
-            $man-install-location.IO.dirname.IO.mkdir;
-            self.die-handle($handle, "Failed to install man page {$man-name}") unless "$man".IO.copy($man-install-location.IO);
-        }
-        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $man-install-location.IO.dirname, :out($handle), :err($handle) if $debug;
-    }
+    $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
+    self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug);
+    $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
+    # html page install #
     my Str $html;
     with %meta«html» {
         $html = %meta«html»;
@@ -695,35 +719,21 @@ method build(IO() $work-dir = $*CWD) {
         $html-name = $html.IO.basename;
     }
     my Str:D $html-install = "/usr/local/html/$html-name";
+    my Str:D $html-name-to = $html-name;
     with %meta«html-install» {
         $html-install = %meta«html-install»;
+        $html-name-to = $html-install.IO.basename;
+        $html-install = $html-install.IO.dirname;
     }
-    my Str:D $html-install-local = "$home/html/{$html-name}";
+    my Str:D $html-install-local = "$home/html";
     with %meta«html-install-local» {
         $html-install-local = %meta«html-install-local»;
+        self.die-handle($handle, "Error: global and local html page name must match") unless $html-name-to eq $html-install-local.IO.basename;
+        $html-install-local = $html-install-local.IO.dirname;
     }
-    my Str $html-install-location;
-    if $*USER == 0 || self.resolve-dir($html-install, $handle).IO ~~ :rwx {
-        $html-install-location = self.resolve-dir($html-install, $handle);
-    } else {
-        $html-install-location = self.resolve-dir($html-install-local, $handle);
-    }
-    $html-install-location.IO.dirname.IO.mkdir;
-    with $html {
-        $handle.say: '$html = ', $html.raku if $debug;
-        $handle.say: '$html-install-location = ', $html-install-location.raku if $debug;
-        if $html.IO ~~ :e {
-            $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $html.IO.dirname, :out($handle), :err($handle) if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$html-install-location == {$html-install-location}" if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$html-install-location.IO.dirname == {$html-install-location.IO.dirname}" if $debug;
-            $html-install-location.IO.dirname.IO.mkdir;
-            self.die-handle($handle, "Failed to install html page {$html-name}") unless $html.IO.copy($html-install-location.IO);
-        }
-        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $html-install-location.IO.dirname, :out($handle), :err($handle) if $debug;
-    }
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $to, :out($handle), :err($handle) if $debug;
-    $handle.say: '$install-location = ', $install-location.raku if $debug;
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug);
+    $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
+    # markdown page intall #
     my Str $markdown-path;
     with %meta«markdown-path» {
         $markdown-path = %meta«markdown-path»;
@@ -733,40 +743,26 @@ method build(IO() $work-dir = $*CWD) {
         $markdown-path-name = $markdown-path.IO.basename;
     }
     my Str:D $markdown-path-install = "/usr/local/markdown-path/$markdown-path-name";
+    my Str:D $markdown-path-name-to = $markdown-path-name;
     with %meta«markdown-path-install» {
         $markdown-path-install = %meta«markdown-path-install»;
+        $markdown-path-name-to = $markdown-path-install.IO.basename;
+        $markdown-path-install = $markdown-path-install.IO.dirname;
     }
     my Str:D $markdown-path-install-local = "$home/markdown-path/{$markdown-path-name}";
     with %meta«markdown-path-install-local» {
         $markdown-path-install-local = %meta«markdown-path-install-local»;
+        self.die-handle($handle, "Error: global and local markdown-path page name must match") unless $markdown-path-name-to eq $markdown-path-install-local.IO.basename;
+        $markdown-path-install-local = $markdown-path-install-local.IO.dirname;
     }
-    my Str $markdown-path-install-location;
-    if $*USER == 0 || self.resolve-dir($markdown-path-install, $handle).IO ~~ :rwx {
-        $markdown-path-install-location = self.resolve-dir($markdown-path-install, $handle);
-    } else {
-        $markdown-path-install-location = self.resolve-dir($markdown-path-install-local, $handle);
-    }
-    $markdown-path-install-location.IO.dirname.IO.mkdir;
-    with $markdown-path {
-        $handle.say: '$markdown-path = ', $markdown-path.raku if $debug;
-        $handle.say: '$markdown-path-install-location = ', $markdown-path-install-location.raku if $debug;
-        if $markdown-path.IO ~~ :e {
-            $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $markdown-path.IO.dirname, :out($handle), :err($handle) if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$markdown-path-install-location == {$markdown-path-install-location}" if $debug;
-            $handle.say: "$?FILE\[$?LINE\] \$markdown-path-install-location.IO.dirname == {$markdown-path-install-location.IO.dirname}" if $debug;
-            $markdown-path-install-location.IO.dirname.IO.mkdir;
-            self.die-handle($handle, "Failed to install markdown-path page {$markdown-path-name}") unless $markdown-path.IO.copy($markdown-path-install-location.IO);
-        }
-        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $markdown-path-install-location.IO.dirname, :out($handle), :err($handle)
-                                                                                                                                                                          if $debug;
-    }
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $to, :out($handle), :err($handle) if $debug;
-    $handle.say: '$install-location = ', $install-location.raku if $debug;
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    self.install-stuff($handle, $markdown-path-name, $markdown-path-name-to, $markdown-path.IO.dirname,
+                                                                                    $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug);
+    $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
 
+    # install library symbolic links #
     chdir("$install-location".IO);
     $r = run 'pwd', :out($handle), :err($handle) if $debug;
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $to, :out($handle), :err($handle) if $debug;
+    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
     if %libraries {
         my @libs = %libraries.pairs.sort( { $^a.value leg $^b.value } ).reverse;
         $handle.say: '@libs = ', @libs.raku if $debug;
@@ -780,4 +776,4 @@ method build(IO() $work-dir = $*CWD) {
     $r = run 'pwd', :out($handle), :err($handle) if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', :out($handle), :err($handle) if $debug;
     True;
-}
+} # method build(IO() $work-dir = $*CWD)  #
