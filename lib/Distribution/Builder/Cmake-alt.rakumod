@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.12>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.14>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.13
+=VERSION 1.0.14
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -563,11 +563,13 @@ method build(IO() $work-dir = $*CWD) {
     self.die-handle($handle, qq[field "lib" must be supplied inside field "build"]) without %meta«lib»;
 
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
-    $handle.say: qq[$?FILE\[$?LINE\]   'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.'] if $debug;
+    $handle.say: qq[$?FILE\[$?LINE\]   exa -F -laahigHb --color-scale --time-style=full-iso --icons=always .] if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
-    $handle.say: qq[$?FILE\[$?LINE\]  'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '..'] if $debug;
-    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '..', :out($handle), :err($handle) if $debug;
+    $handle.say: qq[$?FILE\[$?LINE\]  exa -F -laahigHb --color-scale --time-style=full-iso --icons=always doc/] if $debug;
+    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', 'doc/', :out($handle), :err($handle) if $debug;
+    $handle.say: qq[$?FILE\[$?LINE\]  exa -F -laahigHb --color-scale --time-style=full-iso --icons=always doc/Distribution/Builder/] if $debug;
+    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', 'doc/Distribution/Builder/', :out($handle), :err($handle) if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 
     # Prepare to build
