@@ -20,6 +20,9 @@
     "Distribution::Builder::Cmake-alt": "lib/Distribution/Builder/Cmake-alt.rakumod"
   },
   "resources": [
+      "doc/README.md",
+      "doc/Distribution/Builder/Cmake-alt.3",
+      "doc/Distribution/Builder/Cmake-alt.html"
   ],
   "source-url": "https://github.com/grizzlysmit/Distribution-Builder-Cmake-alt.git",
 	"tags": [
@@ -29,5 +32,5 @@
   ],
   "test-depends": [
   ],
-  "version": "1.0.8"
+  "version": "1.0.9"
 }
