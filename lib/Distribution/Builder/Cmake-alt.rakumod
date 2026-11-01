@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.10>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.12>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.10
+=VERSION 1.0.12
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -440,6 +440,7 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
 method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $from-path, Str:D $to-path-global,
                     Str:D $to-path-local, Str:D $thing, Bool:D $debug, Str:D $base-library = $name, Bool:D $remove-old = False --> List) {
     my Proc $r;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     my Str $install-location;
     $handle.say: "$?FILE\[$?LINE\] \$to-path-global == {$to-path-global.raku}" if $debug;
     my $tmp = self.resolve-dir($to-path-global, $handle);
@@ -616,7 +617,7 @@ method build(IO() $work-dir = $*CWD) {
     $handle.say: "make" if $debug;
     $r = run 'make', :out($handle), :err($handle);
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     if $build-dir eq 'build' || $build-dir eq './build' {
         chdir('..');
         $r = run 'pwd', :out($handle), :err($handle) if $debug;
@@ -630,7 +631,7 @@ method build(IO() $work-dir = $*CWD) {
         }
         $handle.say: '$tmp = ', $tmp.raku if $debug;
     }
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 
     # Prepare library target
     my $library = "lib{ %meta<lib> }.so"; # If your cmake is setup properly, then it should start with 'lib'
@@ -651,6 +652,7 @@ method build(IO() $work-dir = $*CWD) {
         $handle.say: '%libraries = ', %libraries.raku if $debug;
     } # with %meta«lib-versions» #
     # Prepare install location
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     my Str:D $install = "/use/local/lib";
     with %meta«install» {
         $install = %meta«install»;
@@ -665,7 +667,7 @@ method build(IO() $work-dir = $*CWD) {
         my $ver   = %meta«master-lib-version»;
         $library ~= ".$ver";
     }
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     $handle.say: "$?FILE\[$?LINE\] \$library == {$library}" if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
 
@@ -709,6 +711,7 @@ method build(IO() $work-dir = $*CWD) {
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
     self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug);
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # html page install #
     my Str $html;
     with %meta«html» {
@@ -733,6 +736,7 @@ method build(IO() $work-dir = $*CWD) {
     }
     self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug);
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # markdown page intall #
     my Str $markdown-path;
     with %meta«markdown-path» {
@@ -758,10 +762,11 @@ method build(IO() $work-dir = $*CWD) {
     self.install-stuff($handle, $markdown-path-name, $markdown-path-name-to, $markdown-path.IO.dirname,
                                                                                     $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug);
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 
     # install library symbolic links #
     chdir("$install-location".IO);
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
     if %libraries {
         my @libs = %libraries.pairs.sort( { $^a.value leg $^b.value } ).reverse;
@@ -773,7 +778,7 @@ method build(IO() $work-dir = $*CWD) {
             "$target".IO.symlink("$link".IO, :!absolute);
         }
     }
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', :out($handle), :err($handle) if $debug;
     True;
 } # method build(IO() $work-dir = $*CWD)  #
