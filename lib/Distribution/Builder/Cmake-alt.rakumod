@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.12
+=VERSION 1.0.13
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -553,6 +553,8 @@ method build(IO() $work-dir = $*CWD) {
     my IO::Handle:D $handle = $log.open: :append, :$create, :mode<rw>, :out-buffer(False);
     $*OUT = $handle;
     $*ERR = $handle;
+    
+    my Proc $r;
     $handle.say: '%!meta = ', %!meta.raku if $debug;
     my %meta = %!meta<build>;
     $handle.say: '%meta = ', %meta.raku if $debug;
@@ -560,9 +562,13 @@ method build(IO() $work-dir = $*CWD) {
     self.die-handle($handle, 'You need Make to install this package!') unless shell 'which make';
     self.die-handle($handle, qq[field "lib" must be supplied inside field "build"]) without %meta«lib»;
 
-    my Proc $r;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: qq[$?FILE\[$?LINE\]   'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.'] if $debug;
     $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
-    $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
+    $handle.say: qq[$?FILE\[$?LINE\]  'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '..'] if $debug;
+    $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '..', :out($handle), :err($handle) if $debug;
+    $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 
     # Prepare to build
     my $src-dir;
@@ -580,8 +586,10 @@ method build(IO() $work-dir = $*CWD) {
     }
     $handle.say: '$cmake-src-dir = ', $cmake-src-dir.raku if $debug;
     if $cmake-src-dir eq '.' || $cmake-src-dir eq '' {
+        $handle.say: qq[$?FILE\[$?LINE\]  exa, -F, -laahigHb, --color-scale, --time-style=full-iso, --icons=always, .] if $debug;
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', '.', :out($handle), :err($handle) if $debug;
     } else {
+        $handle.say: qq[$?FILE\[$?LINE\]  exa, -F, -laahigHb, --color-scale, --time-style=full-iso, --icons=always, $cmake-src-dir] if $debug;
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $cmake-src-dir, :out($handle), :err($handle) if $debug;
     }
     #self.die-handle($handle, "$cmake-src-dir is not a directory.") unless $cmake-src-dir eq '' || $cmake-src-dir eq '.' || ($cmake-src-dir.IO.e && $cmake-src-dir.IO.d);
