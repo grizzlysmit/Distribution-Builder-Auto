@@ -6,7 +6,7 @@ plan 7;
 my %build =
             lib => 'test',
             src-dir => 't/cc',
-            install => 'usr/local/lib', # need it not to polute the global system this is a test #
+            install => '/usr/local/lib', # need it not to polute the global system this is a test #
             install-local => '$*HOME/lib',
             "master-lib-version"=> "1.0.0",
             "lib-versions" => {
@@ -24,8 +24,8 @@ my %build =
             "markdown-path-install" => "/usr/local/share/Distribution::Builder::Cmake-alt/README.md",
             "markdown-path-install-local" => '$HOME/docs/Distribution::Builder::Cmake-alt/README.md',
             "source" => "",
-            "debug"  => True,
-            "log"    => "/dev/tty";
+            "debug"  => False,
+            "log"    => "/dev/null";
 
 my %meta = Map.new: (:%build);
 
