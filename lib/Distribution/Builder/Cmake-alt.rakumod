@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.18>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.19>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.18
+=VERSION 1.0.19
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -518,6 +518,20 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
     $handle.say: '$from == ', $from.raku if $debug;
     $handle.say: '$to   == ', $to.raku if $debug;
     if $grab-contents {
+        CATCH {
+            when X::AdHoc {
+                $handle.say: "$?FILE\[$?LINE\] \$from == {$from.raku}" if $debug;
+                $handle.say: "$?FILE\[$?LINE\] \$to == {$to.raku}" if $debug;
+                $handle.say: "Error: {DateTime.now.local.Str}  {.^name}   {.Str}";
+                .throw;
+            }
+            default {
+                $handle.say: "$?FILE\[$?LINE\] \$from == {$from.raku}" if $debug;
+                $handle.say: "$?FILE\[$?LINE\] \$to == {$to.raku}" if $debug;
+                $handle.say: "Error: {DateTime.now.local.Str}  {.^name}   {.Str}";
+                .throw;
+            }
+        }
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from-path, :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-lahigHTb', '--color-scale', '--time-style=full-iso', '--icons=always', 'resources/', :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
@@ -527,6 +541,7 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         my $file_handle = $resource.open();
         my Str:D $contents = $resource.slurp;
         $to.IO.spurt($contents);
+        return True, $install-location;
     } else {
         # to-path-global
         with $from-path {
