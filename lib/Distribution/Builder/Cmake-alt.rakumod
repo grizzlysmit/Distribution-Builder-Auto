@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.16>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.17>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.16
+=VERSION 1.0.17
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -752,7 +752,7 @@ method build(IO() $work-dir = $*CWD) {
         $man-install-local = $man-install-local.IO.dirname;
     }
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
-    self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug);
+    self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug, :grab-contents);
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # html page install #
@@ -777,7 +777,7 @@ method build(IO() $work-dir = $*CWD) {
         self.die-handle($handle, "Error: global and local html page name must match") unless $html-name-to eq $html-install-local.IO.basename;
         $html-install-local = $html-install-local.IO.dirname;
     }
-    self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug, :!grab-contents);
+    self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug, :grab-contents);
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # markdown page intall #
@@ -805,7 +805,7 @@ method build(IO() $work-dir = $*CWD) {
     $handle.say: "$?FILE\[$?LINE\] \$markdown-path-name == {$markdown-path-name}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] \$markdown-path-install == {$markdown-path-install}\n$markdown-path-install-local == {$markdown-path-install-local}" if $debug;
     self.install-stuff($handle, $markdown-path-name, $markdown-path-name-to, $markdown-path.IO.dirname,
-                                                                    $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug, :!grab-contents);
+                                                                    $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug, :grab-contents);
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 
