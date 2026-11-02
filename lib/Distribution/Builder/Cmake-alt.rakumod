@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.19>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.21>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.19
+=VERSION 1.0.21
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -439,7 +439,7 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
 } # multi method resolve-dir(Str:D $dir, Bool $relitive-to-home = True --> Str) is export #
 
 
-sub Cmake-alt-resources(IO::Handle $handle, *@resources --> Hash) is export {
+sub Cmake-alt-resources(IO::Handle $handle, *@resources --> Distribution::Resource) is export {
     for @resources -> $resource-filename {
         my $resource = %?RESOURCES{$resource-filename};
         # Just some error-checking code
@@ -518,32 +518,35 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
     $handle.say: '$from == ', $from.raku if $debug;
     $handle.say: '$to   == ', $to.raku if $debug;
     if $grab-contents {
+        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from-path, :out($handle), :err($handle) if $debug;
+        $r = run 'exa', '-F', '-lahigHTb', '--color-scale', '--time-style=full-iso', '--icons=always', 'resources/', :out($handle), :err($handle) if $debug;
+        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
+        my $res = $from;
+        $res ~~ s@ ^^ 'resources/' @@;
+        my $resources = Cmake-alt-resources($handle, $res);
+        $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
+        my $resource     = $resources{$res};
+        $handle.say: qq[$?FILE\[$?LINE\] \$resource == \`{$resource.raku}'] if $debug;
+        my Str $contents = $resource.slurp;
+        $handle.say: qq[$?FILE\[$?LINE\] \$contents == \`{$contents.raku}'] if $debug;
+        $to.IO.spurt($contents);
+        return True, $install-location;
         CATCH {
             when X::AdHoc {
                 $handle.say: "$?FILE\[$?LINE\] \$from == {$from.raku}" if $debug;
                 $handle.say: "$?FILE\[$?LINE\] \$to == {$to.raku}" if $debug;
+                $handle.say: "$?FILE\[$?LINE\] \$res == {$res.raku}" if $debug;
                 $handle.say: "Error: {DateTime.now.local.Str}  {.^name}   {.Str}";
                 .throw;
             }
             default {
                 $handle.say: "$?FILE\[$?LINE\] \$from == {$from.raku}" if $debug;
                 $handle.say: "$?FILE\[$?LINE\] \$to == {$to.raku}" if $debug;
+                $handle.say: "$?FILE\[$?LINE\] \$res == {$res.raku}" if $debug;
                 $handle.say: "Error: {DateTime.now.local.Str}  {.^name}   {.Str}";
                 .throw;
             }
         }
-        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from-path, :out($handle), :err($handle) if $debug;
-        $r = run 'exa', '-F', '-lahigHTb', '--color-scale', '--time-style=full-iso', '--icons=always', 'resources/', :out($handle), :err($handle) if $debug;
-        $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
-        my $res = $from;
-        $res ~~ s@ ^^ 'resources/' @@;
-        my %resources = Cmake-alt-resources($handle, $res);
-        $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
-        my $resource = %resources{$from-path};
-        my $file_handle = $resource.open();
-        my Str:D $contents = $resource.slurp;
-        $to.IO.spurt($contents);
-        return True, $install-location;
     } else {
         # to-path-global
         with $from-path {
