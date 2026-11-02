@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.21>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.22>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.21
+=VERSION 1.0.22
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -456,7 +456,8 @@ sub Cmake-alt-resources(IO::Handle $handle, Bool:D $debug, *@resources --> Distr
 }
 
 method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $from-path, Str:D $to-path-global,
-                    Str:D $to-path-local, Str:D $thing, Bool:D $debug, Str:D :$base-library = $name, Bool:D :$remove-old = False, Bool:D :$grab-contents = False --> List) {
+                    Str:D $to-path-local, Str:D $thing, Bool:D $debug, %meta, Str :$pod-kind = Str,
+                    Str:D :$base-library = $name, Bool:D :$remove-old = False, Bool:D :$grab-contents = False --> List) {
     my Proc $r;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     my Str $install-location;
@@ -556,7 +557,20 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         }
     } else {
         # to-path-global
+        $from-path.IO.mkdir;
         with $from-path {
+            with $pod-kind {
+                with %meta«pod6-files» {
+                    my @pod6-files = |(%meta«pod6-files»);
+                    my IO::Handle $pod = $from.IO.open: :w, :out-buffer(False);
+                    for @pod6-files -> $pod6-file {
+                        $r = run 'raku', "--doc=$pod-kind", $pod6-file, :out($pod), :err($handle);
+                    }
+                    LEAVE {
+                        $pod.close;
+                    }
+                }
+            }
             if $from.IO ~~ :f {
                 $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
                 $handle.say: "$?FILE\[$?LINE\]" if $debug;
@@ -591,7 +605,8 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         }
     }
 } #`««« method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $from-path, Str:D $to-path-global,
-                                   Str:D $to-path-local, Str:D $thing, Bool:D $debug, Str:D $base-library = $name, Bool:D $remove-old = False --> List) »»»
+                    Str:D $to-path-local, Str:D $thing, Bool:D $debug, %meta, Str :$pod-kind = Str,
+                    Str:D :$base-library = $name, Bool:D :$remove-old = False, Bool:D :$grab-contents = False --> List) »»»
 
 
 
@@ -748,7 +763,7 @@ method build(IO() $work-dir = $*CWD) {
 
 
     # Install
-    my ($ok, $install-location) = self.install-stuff($handle, $library, $library, $build-dir, $install, $install-local, 'library', $debug, :$base-library, :remove-old);
+    my ($ok, $install-location) = self.install-stuff($handle, $library, $library, $build-dir, $install, $install-local, 'library', $debug, %meta, :$base-library, :remove-old);
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location.raku}" if $debug;
     # man page generation #
     my Str:D $man-number = '1';
@@ -783,7 +798,7 @@ method build(IO() $work-dir = $*CWD) {
         $man-install-local = $man-install-local.IO.dirname;
     }
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
-    self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug, :grab-contents);
+    self.install-stuff($handle, $man-name, $man-name-to, $man.IO.dirname, $man-install, $man-install-local, 'man page', $debug, %meta, :pod-kind('Man'));
     $handle.say: "$?FILE\[$?LINE\] \$man-name-to == {$man-name-to.raku}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # html page install #
@@ -808,7 +823,7 @@ method build(IO() $work-dir = $*CWD) {
         self.die-handle($handle, "Error: global and local html page name must match") unless $html-name-to eq $html-install-local.IO.basename;
         $html-install-local = $html-install-local.IO.dirname;
     }
-    self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug, :grab-contents);
+    self.install-stuff($handle, $html-name, $html-name-to, $html.IO.dirname, $html-install, $html-install-local, 'html page', $debug, %meta, :pod-kind('HTML'));
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
     # markdown page intall #
@@ -836,7 +851,7 @@ method build(IO() $work-dir = $*CWD) {
     $handle.say: "$?FILE\[$?LINE\] \$markdown-path-name == {$markdown-path-name}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] \$markdown-path-install == {$markdown-path-install}\n$markdown-path-install-local == {$markdown-path-install-local}" if $debug;
     self.install-stuff($handle, $markdown-path-name, $markdown-path-name-to, $markdown-path.IO.dirname,
-                                                                    $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug, :grab-contents);
+                                                            $markdown-path-install, $markdown-path-install-local, 'markdown-path page', $debug, %meta, :pod-kind('Markdown'));
     $handle.say: "$?FILE\[$?LINE\] \$install-location == {$install-location}" if $debug;
     $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
 

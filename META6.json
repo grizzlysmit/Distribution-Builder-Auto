@@ -7,6 +7,9 @@
   "build-depends": [
   ],
   "depends": [
+      "Pod::To::Man",
+      "Pod::To::HTML",
+      "Pod::To::Markdown",
       "File::Directory::Tree",
       "g++:from<bin>",
 	  "cmake:from<bin>",
@@ -32,5 +35,5 @@
   ],
   "test-depends": [
   ],
-  "version": "1.0.21"
+  "version": "1.0.22"
 }

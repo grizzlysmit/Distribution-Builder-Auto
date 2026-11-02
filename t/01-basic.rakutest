@@ -13,6 +13,9 @@ my %build =
                 "1" => "1.0.0",
                 "" => "1"
             },
+            "pod6-files" => [
+                "lib/Gzz/Readline.rakumod"
+            ],
             "man-number" => "3",
             "man"    => 'resources/doc/Distribution/Builder/Cmake-alt.$man-number',
             "man-install" => '/usr/local/man/man$man-number/Distribution::Builder::Cmake-alt.$man-number',
@@ -24,8 +27,8 @@ my %build =
             "markdown-path-install" => "/usr/local/share/Distribution::Builder::Cmake-alt/README.md",
             "markdown-path-install-local" => '$HOME/docs/Distribution::Builder::Cmake-alt/README.md',
             "source" => "",
-            "debug"  => True,
-            "log"    => "/dev/tty";
+            "debug"  => False,
+            "log"    => "/dev/null";
 
 my %meta = Map.new: (:%build);
 
