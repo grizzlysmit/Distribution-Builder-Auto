@@ -439,15 +439,15 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
 } # multi method resolve-dir(Str:D $dir, Bool $relitive-to-home = True --> Str) is export #
 
 
-sub Cmake-alt-resources(*@resources --> Hash) is export {
+sub Cmake-alt-resources(IO::Handle $handle, *@resources --> Hash) is export {
     for @resources -> $resource-filename {
         my $resource = %?RESOURCES{$resource-filename};
         # Just some error-checking code
         if $resource !~~ Distribution::Resource {
-            note "Could not find resource \`$resource-filename' in distribution";
-            say qx{ls -laF ; ls -laF resources ; cat META6.json};
-            say "Resource is: " ~ $resource.raku;
-            say "Resource keys are: " ~ %?RESOURCES.keys.raku;
+            $handle.say: "Could not find resource \`$resource-filename' in distribution";
+            $handle.say: qx{ls -laF ; ls -laF resources ; cat META6.json};
+            $handle.say: "Resource is: " ~ $resource.raku;
+            $handle.say: "Resource keys are: " ~ %?RESOURCES.keys.raku;
         }
     }
 
@@ -535,7 +535,9 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from-path, :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-lahigHTb', '--color-scale', '--time-style=full-iso', '--icons=always', 'resources/', :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
-        my %resources = Cmake-alt-resources($from-path);
+        my $res = $from;
+        $res ~~ s@ ^^ 'resources/' @@;
+        my %resources = Cmake-alt-resources($handle, $res);
         $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
         my $resource = %resources{$from-path};
         my $file_handle = $resource.open();
