@@ -17,7 +17,7 @@
   "name": "Distribution::Builder::Cmake-alt",
   "perl": "6.d",
   "provides": {
-    "Distribution::Builder::Cmake-alt": "lib/Distribution/Builder/Cmake-alt.rakumod"
+      "Distribution::Builder::Cmake-alt": "lib/Distribution/Builder/Cmake-alt.rakumod"
   },
   "resources": [
       "doc/README.md",

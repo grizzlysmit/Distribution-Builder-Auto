@@ -439,7 +439,8 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
 } # multi method resolve-dir(Str:D $dir, Bool $relitive-to-home = True --> Str) is export #
 
 
-sub Cmake-alt-resources(IO::Handle $handle, *@resources --> Distribution::Resource) is export {
+sub Cmake-alt-resources(IO::Handle $handle, Bool:D $debug, *@resources --> Distribution::Resources) is export(:tests) {
+    $handle.say: "$?FILE\[$?LINE\] Resource keys are: " ~ %?RESOURCES.keys.raku if $debug;
     for @resources -> $resource-filename {
         my $resource = %?RESOURCES{$resource-filename};
         # Just some error-checking code
@@ -521,13 +522,19 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $from-path, :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-lahigHTb', '--color-scale', '--time-style=full-iso', '--icons=always', 'resources/', :out($handle), :err($handle) if $debug;
         $r = run 'exa', '-F', '-laahigHb', '--color-scale', '--time-style=full-iso', '--icons=always', $install-location, :out($handle), :err($handle) if $debug;
+        $handle.say: "$?FILE\[$?LINE\] Resource keys are: " ~ %?RESOURCES.keys.raku if $debug;
         my $res = $from;
         $res ~~ s@ ^^ 'resources/' @@;
-        my $resources = Cmake-alt-resources($handle, $res);
+        my $resources = Cmake-alt-resources($handle, $debug, $res);
+        $handle.say: "$?FILE\[$?LINE\] \$resources == {$resources.raku}" if $debug;
         $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
         my $resource     = $resources{$res};
         $handle.say: qq[$?FILE\[$?LINE\] \$resource == \`{$resource.raku}'] if $debug;
-        my Str $contents = $resource.slurp;
+        my IO::Handle:D $file_handle = $resource.open();
+        #my IO::Handle:D $file_handle = %?RESOURCES{$res}.open();
+        $handle.say: qq[$?FILE\[$?LINE\] \$resource == \`{$resource.raku}'] if $debug;
+        my $contents  = slurp($file_handle, $handle, $debug);
+        #my Str $contents = $resource.slurp;
         $handle.say: qq[$?FILE\[$?LINE\] \$contents == \`{$contents.raku}'] if $debug;
         $to.IO.spurt($contents);
         return True, $install-location;
