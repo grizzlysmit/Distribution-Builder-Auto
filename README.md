@@ -31,7 +31,7 @@ Francis Grizzly Smit (grizzly@smit.id.au)
 VERSION
 =======
 
-1.0.22
+1.0.23
 
 TITLE
 =====
@@ -138,6 +138,9 @@ Assuming your Raku project keeps its CMake project in a folder called `my-cmake-
             "1": "1.0.0",
             "": "1"
         },
+        "pod6-files": [
+            "lib/Gzz/Readline.rakumod"
+        ],
         "man-number" : "3",
         "man"    : "resources/docs/Gzz/Readline.$man-number",
         "man-install" : "/usr/local/man/man$man-number/Gzz::Readline.$man-number",
@@ -180,6 +183,18 @@ Where
     1448470 lrwxrwxrwx      1    - root root  2026-10-31 06:44:22.781481214 +1100  libgzz_readline.so.1 -> libgzz_readline.so.1.0.0*
     1446352 .rwxr-xr-x      1 22Ki root root  2026-10-31 06:44:22.588264210 +1100  libgzz_readline.so.1.0.0*
     ```
+
+  * `pod6-files` is a list of paths to pod6 files these can be `.raku` `.rakumod` or `.rakudoc` files these will be used to generate **man** **html** and/or **markup** files, it will use them in order and place the output in the same file. The files will be the ones specified by by `man` `html` and/or `markdown-path` and will be used to install those, See bellow.
+
+    * The command used will be.
+
+      ```bash
+      raku --doc=$pod-kind $pod6-file
+      ```
+
+    * Where
+
+      * `$pod-kind` can be **Man** for **man pages**, **HTML** for **html** and **Markup** for **markup** files.
 
   * `man-number` is the manual section to install the man file ([see **Linux/Unix** man pages](https://en.wikipedia.org/wiki/Man_page)) if you are looking to install a executable then man-number should be `1` if you are installing a library then `3`.
 

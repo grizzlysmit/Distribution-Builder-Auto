@@ -1,6 +1,6 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.22>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Cmake-alt:ver<1.0.23>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
@@ -22,7 +22,7 @@ Table of Contents
 
 =NAME Gzz::Readline 
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
-=VERSION 1.0.22
+=VERSION 1.0.23
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
@@ -124,6 +124,9 @@ In your C«META6.json» you'll add the following:
             "1": "1.0.0",
             "": "1"
         },
+        "pod6-files": [
+            "lib/Gzz/Readline.rakumod"
+        ],
         "man-number" : "3",
         "man"    : "resources/docs/Gzz/Readline.$man-number",
         "man-install" : "/usr/local/man/man$man-number/Gzz::Readline.$man-number",
@@ -168,6 +171,20 @@ $ exa -F -laahigHb --color-scale --time-style=full-iso --icons=always /usr/local
 
 =end code
 =end item2
+=item1 C«pod6-files»  is a list of paths to pod6 files these can be C«.raku» C«.rakumod» or C«.rakudoc» files these will be used to generate B«man» B«html» and/or B«markup» files, it will use them in order and place the output in the same file. The files will be the ones specified by by C«man» C«html» and/or C«markdown-path» and will be used to install those, See bellow.
+=begin item2
+
+The command used will be.
+
+=begin code :lang<bash>
+
+raku --doc=$pod-kind $pod6-file
+
+=end code
+
+=end item2
+=item2 Where
+=item3 C«$pod-kind» can be B«Man» for B«man pages», B«HTML» for B«html» and B«Markup» for B«markup» files.
 =item1 C«man-number»  is the manual section to install the man file (L<see B«Linux/Unix» man pages|https://en.wikipedia.org/wiki/Man_page>) if you are looking to install a executable then man-number should be C«1» if you are installing a library then C«3».
 =item1 C«man»         is the path to the manual page inside the install package. 
 =item1 C«man-install» is the path to install the man page to if the user is the root user or otherwise able to read write and execute the path C«path.IO.dirname.IO  ~~ :rwx».
