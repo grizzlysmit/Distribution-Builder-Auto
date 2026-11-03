@@ -1,7 +1,6 @@
 {
   "auth": "zef:grizzlysmit",
   "authors": [
-    "Rawley Fowler",
     "Francis Grizzly Smit <grizzly@smit.id.au>"
   ],
   "build-depends": [
@@ -15,25 +14,25 @@
 	  "cmake:from<bin>",
 	  "make:from<bin>"
   ],
-  "description": "A zef builder to aid in binding CMake projects to Raku",
+  "description": "A zef builder to aid in Automating projects to Raku",
   "license": "Artistic-2.0",
-  "name": "Distribution::Builder::Cmake-alt",
+  "name": "Distribution::Builder::Auto",
   "perl": "6.d",
   "provides": {
-      "Distribution::Builder::Cmake-alt": "lib/Distribution/Builder/Cmake-alt.rakumod"
+      "Distribution::Builder::Auto": "lib/Distribution/Builder/Auto.rakumod"
   },
   "resources": [
       "doc/README.md",
-      "doc/Distribution/Builder/Cmake-alt.3",
-      "doc/Distribution/Builder/Cmake-alt.html"
+      "doc/Distribution/Builder/Auto.3",
+      "doc/Distribution/Builder/Auto.html"
   ],
-  "source-url": "https://github.com/grizzlysmit/Distribution-Builder-Cmake-alt.git",
+  "source-url": "https://github.com/grizzlysmit/Distribution-Builder-Auto.git",
 	"tags": [
 		"C++",
 		"CMake",
-        "Cmake-alt"
+        "Auto"
   ],
   "test-depends": [
   ],
-  "version": "1.0.24"
+  "version": "0.0.1"
 }

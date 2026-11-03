@@ -1,10 +1,10 @@
 use v6.d;
 use File::Directory::Tree;
-unit class Distribution::Builder::Cmake-alt:ver<1.0.24>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
+unit class Distribution::Builder::Auto:ver<1.0.24>:auth<Francis Grizzly Smit (grizzly@smit.id.au)>;
 
 =begin pod
 
-=head1 Distribution::Builder::Cmake-alt
+=head1 Distribution::Builder::Auto
 
 =begin head2
 
@@ -26,7 +26,7 @@ Table of Contents
 =TITLE Gzz::Readline
 =SUBTITLE A Raku module for building CMake projects to make .so files and installing them in into a chosen install directory.
 
-=COPYRIGHT This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0 L<LICENSE|https://github.com/grizzlysmit/Distribution-Builder-Cmake-alt/blob/main/LICENSE>
+=COPYRIGHT This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0 L<LICENSE|https://github.com/grizzlysmit/Distribution-Builder-Auto/blob/main/LICENSE>
 
 
 L<Top of Document|#table-of-contents>
@@ -103,7 +103,7 @@ In your C«META6.json» you'll add the following:
         "Gzz::Readline.rakudoc": "doc/Gzz/Readline.rakudoc"
     },
     "depends": [
-        "Distribution::Builder::Cmake-alt",
+        "Distribution::Builder::Auto",
         "P5readlink",
         "Pod::To::HTML", 
         "Pod::To::Man",
@@ -113,7 +113,7 @@ In your C«META6.json» you'll add the following:
     ],
     .....
     ......
-    "builder": "Distribution::Builder::Cmake-alt",
+    "builder": "Distribution::Builder::Auto",
     "build": {
         "lib"    : "gzz_readline",
         "install": "/usr/local/lib",
@@ -465,7 +465,7 @@ multi method resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home 
 } # multi method resolve-dir(Str:D $dir, Bool $relitive-to-home = True --> Str) is export #
 
 
-sub Cmake-alt-resources(IO::Handle $handle, Bool:D $debug, *@resources --> Distribution::Resources) is export(:tests) {
+sub Auto-resources(IO::Handle $handle, Bool:D $debug, *@resources --> Distribution::Resources) is export(:tests) {
     $handle.say: "$?FILE\[$?LINE\] Resource keys are: " ~ %?RESOURCES.keys.raku if $debug;
     for @resources -> $resource-filename {
         my $resource = %?RESOURCES{$resource-filename};
@@ -552,7 +552,7 @@ method install-stuff(IO::Handle $handle, Str:D $name, Str:D $name-to, Str:D $fro
         $handle.say: "$?FILE\[$?LINE\] Resource keys are: " ~ %?RESOURCES.keys.raku if $debug;
         my $res = $from;
         $res ~~ s@ ^^ 'resources/' @@;
-        my $resources = Cmake-alt-resources($handle, $debug, $res);
+        my $resources = Auto-resources($handle, $debug, $res);
         $handle.say: "$?FILE\[$?LINE\] \$resources == {$resources.raku}" if $debug;
         $handle.say: "$?FILE\[$?LINE\] pwd" if $debug; $r = run 'pwd', :out($handle), :err($handle) if $debug;
         my $resource     = $resources{$res};

@@ -9,8 +9,9 @@
     "bin": "bin",
     "docs": "resources/doc",
     "separate-markdown-files": false,
+    "separate-pod6-files": false,
     "lib": "lib",
-    "name": "Distribution::Builder::Cmake-alt",
+    "name": "Distribution::Builder::Auto",
     "only-app": false,
     "comment": "setting this up",
     "additional-pod-files": [

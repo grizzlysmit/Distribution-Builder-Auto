@@ -1,5 +1,5 @@
-Distribution::Builder::Cmake-alt
-================================
+Distribution::Builder::Auto
+===========================
 
 Table of Contents
 -----------------
@@ -46,7 +46,7 @@ A Raku module for building CMake projects to make .so files and installing them 
 COPYRIGHT
 =========
 
-This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0 [LICENSE](https://github.com/grizzlysmit/Distribution-Builder-Cmake-alt/blob/main/LICENSE)
+This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0 [LICENSE](https://github.com/grizzlysmit/Distribution-Builder-Auto/blob/main/LICENSE)
 
 [Top of Document](#table-of-contents)
 
@@ -117,7 +117,7 @@ Assuming your Raku project keeps its CMake project in a folder called `my-cmake-
         "Gzz::Readline.rakudoc": "doc/Gzz/Readline.rakudoc"
     },
     "depends": [
-        "Distribution::Builder::Cmake-alt",
+        "Distribution::Builder::Auto",
         "P5readlink",
         "Pod::To::HTML", 
         "Pod::To::Man",
@@ -127,7 +127,7 @@ Assuming your Raku project keeps its CMake project in a folder called `my-cmake-
     ],
     .....
     ......
-    "builder": "Distribution::Builder::Cmake-alt",
+    "builder": "Distribution::Builder::Auto",
     "build": {
         "lib"    : "gzz_readline",
         "install": "/usr/local/lib",
