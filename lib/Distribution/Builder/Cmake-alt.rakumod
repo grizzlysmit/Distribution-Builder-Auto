@@ -176,9 +176,18 @@ $ exa -F -laahigHb --color-scale --time-style=full-iso --icons=always /usr/local
 
 The command used will be.
 
-=begin code :lang<bash>
+=begin code :lang<raku>
 
-raku --doc=$pod-kind $pod6-file
+with %meta«pod6-files» {
+    my @pod6-files = |(%meta«pod6-files»);
+    my IO::Handle $pod = $from.IO.open: :w, :out-buffer(False);
+    for @pod6-files -> $pod6-file {
+        $r = run 'raku', "--doc=$pod-kind", $pod6-file, :out($pod), :err($handle);
+    }
+    LEAVE {
+        $pod.close;
+    }
+}
 
 =end code
 

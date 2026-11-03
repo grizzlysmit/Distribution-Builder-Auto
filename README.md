@@ -188,8 +188,17 @@ Where
 
     * The command used will be.
 
-      ```bash
-      raku --doc=$pod-kind $pod6-file
+      ```raku
+      with %meta«pod6-files» {
+          my @pod6-files = |(%meta«pod6-files»);
+          my IO::Handle $pod = $from.IO.open: :w, :out-buffer(False);
+          for @pod6-files -> $pod6-file {
+              $r = run 'raku', "--doc=$pod-kind", $pod6-file, :out($pod), :err($handle);
+          }
+          LEAVE {
+              $pod.close;
+          }
+      }
       ```
 
     * Where
