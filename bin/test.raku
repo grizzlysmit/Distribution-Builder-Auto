@@ -1,0 +1,152 @@
+use v6.*;
+use Distribution::Builder::Auto;
+
+my %build = "actions" => {
+                '%vars' => {
+                    '$source'              => "",
+                    '$install-path-global' => "/usr/local/lib", 
+                    '$install-path-local'  => '$*HOME/lib', 
+                    '$lib-name-master'     => "libtrail.so",
+                    '$master-lib-version'  => ".1.0.0",
+                    '@lib-versions'        => [
+                            [ ".1", ".1.0.0" ],
+                            [   "", ".1" ]
+                    ],
+                    '$pod6' => "lib/Distribution/Builder/Auto.rakumod",
+                    '$install-location'    => "",
+                    '$lib-name'            => ""
+                }, 
+                "&before" => ["cmds",
+                    ["cd", "t/cc/"],
+                    ["rmtree", "build"],
+                    ["mkdir", "build"],
+                    ["cd", "build"],
+                    ["debug", ["pwd"]],
+                    ["debug", ["ls-l"]],
+                    ["run", "cmake", ".."], 
+                    ["debug", ["ls-l"]],
+                    ["run", "make"],
+                    ["debug", ["ls-l"]],
+                    ["debug", ["pwd"]],
+                    ["cd", "../../.."], 
+                    ["debug", ["ls-l"]],
+                    ["my", '$lib-name', '=', '$lib-name-master$master-lib-version'],
+                    ["rwx-mkdir", '$install-path-global', 
+                             ["then",
+                                ["my",    '$install-location', '$install-path-global'],
+                                ["cp",    't/cc/build/$lib-name', '$install-path-global/$lib-name'],
+                                ["debug", ["ls-l", '$install-location']],
+                                ["debug", ["dd-pwd"]] 
+                            ],
+                            ["else",
+                                ["my",    '$install-location', '=', '$install-path-local'],
+                                ["cp",    't/cc/build/$lib-name', '$install-path-local/$lib-name'], 
+                                ["debug", ["ls-l", '$install-location']],
+                                ["debug", ["dd-pwd"]] 
+                            ]
+                    ]
+                ], 
+                '@body-paths' => [
+                    {
+                        '$type'               => "Man",
+                        '$man-number'         => "3",
+                        '$src-path'           => 'resources/doc/Distribution/Builder/Auto.$man-number',
+                        '$global-install-dir' => '/usr/local/man/man$man-number/Distribution::Builder::Auto.$man-number',
+                        '$local-install-dir'  => '$*HOME/man/man$man-number/Distribution::Builder::Auto.$man-number'
+                    },
+                    {
+                        '$type'               => "HTML",
+                        '$src-path'           => 'resources/doc/Distribution/Builder/Auto.html',
+                        '$global-install-dir' => '/usr/local/share/html/Distribution::Builder::Auto.html',
+                        '$local-install-dir'  => '$*HOME/html/Distribution::Builder::Auto.html'
+                    },
+                    {
+                        '$type'               => "Markdown",
+                        '$src-path'           => 'resources/doc/README.md',
+                        '$global-install-dir' => '/usr/local/share/Distribution::Builder::Auto/README.md',
+                        '$local-install-dir'  => '$*HOME/doc/Distribution::Builder::Auto/README.md'
+                    }
+                ], 
+                "&body" => ["cmds",
+                    [ "my", '$install-path' ],
+                    [ "for", '@body-paths', '%paths', ["scope", '%paths',
+                            [ 'rwx-mkdir', '$global-install-path',
+                                    ["then",
+                                        [ '=', '$install-path', '$global-install-path' ],
+                                    ],
+                                    ["else",
+                                        [ '=', '$install-path', '$local-install-path' ],
+                                    ]
+                            ],
+                            [ "spurt", ["raku", '--doc=$type', '$pod6'], '$src-path'],
+                            [ 'cp', '$src-path', '$install-path' ],
+                            [ "debug",
+                                ["exists",  ['dd-like', ":file-line", '$man-number' ]] ,
+                                ['dd-like', ":file-line", '$pod6' ],
+                                ['dd-like', ":file-line", '$man-number' ],
+                                ['dd-like', ":file-line", '$src-path' ],
+                                ['dd-like', ":file-line", '$global-install-dir' ],
+                                ['dd-like', ":file-line", '$local-install-dir' ],
+                                ['dd-like', ":file-line", '$install-path' ],
+                                ['dd-pwd' ]
+                            ]
+                        ]
+                    ],
+                    [ 'ls-l', '$install-path'],
+                    ["debug", ["dd-pwd"]]
+                ], 
+                "&after" => ["cmds",
+                    ["debug", "pwd"],
+                    ["cd", '$install-location'],
+                    ["debug", ["pwd"]],
+                    ["debug", ["ls-l"]],
+                    ["for", '@lib-versions', '->',  '@verpair', [
+                            [ "my", '$link-v',     '=', '{@verpair}[0]' ],
+                            [ "my", '$target-v',   '=', '{@verpair}[1]' ],
+                            [ 'my', '$link', '=', '$lib-name-master$link-v'],
+                            [ "file-exists", '$link', [ "unlink-file", '$link'] ],
+                            [ 'my', '$target', '=', '$lib-name-master$target-v'],
+                            [ "symlink", '$link', '$lib-name-master$target']
+                        ]
+                    ],
+                    ["debug", ["ls-l"]],
+                    ['debug', ['pwd']]
+                ],
+                '&id'  => ["cmds",  ],
+                '@fred' => [ 
+                    { 
+                        '$stuff0' => "stuff0",
+                        '$stuff1' => "stuff1",
+                        '$stuff2' => "stuff2"
+                    },
+                    {
+                        '$stuff0' => "stuff0",
+                        '$stuff1' => "stuff1",
+                        '$stuff2' => "stuff2"
+                    }
+                ]
+                
+            },
+            "debug"  => True,
+            "log"    => "/dev/tty";
+
+my %meta = Map.new: (:%build);
+
+my $builder = Distribution::Builder::Auto.new(:%meta);
+
+my Str:D $HOME = $*HOME.path;
+my Str:D $man-number = '3';
+my Str:D $install-location = "/usr/local/lib";
+$install-location = "$*HOME/lib" unless $*USER == 0 || $install-location.IO ~~ :rwx;
+
+my Str:D $man-install-location = "/usr/local/man/man$man-number";
+$man-install-location = "$*HOME/man/man$man-number" unless $*USER == 0 || $man-install-location.IO ~~ :rwx;
+
+my Str:D $html-install-location = "/usr/local/share/html";
+$html-install-location = "$*HOME/html" unless $*USER == 0 || $html-install-location.IO ~~ :rwx;
+
+my Str:D $markup-install-location = "/usr/local/share/Distribution::Builder::Auto";
+$markup-install-location = "$*HOME/share/Distribution::Builder::Auto" unless $*USER == 0 || $markup-install-location.IO ~~ :rwx;
+
+$builder.build("$*CWD/t");
+

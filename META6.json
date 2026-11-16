@@ -10,16 +10,16 @@
       "Pod::To::HTML",
       "Pod::To::Markdown",
       "File::Directory::Tree",
-      "g++:from<bin>",
-	  "cmake:from<bin>",
-	  "make:from<bin>"
+      "g++:from<bin>"
   ],
   "description": "A zef builder to aid in Automating projects to Raku",
   "license": "Artistic-2.0",
   "name": "Distribution::Builder::Auto",
   "perl": "6.d",
   "provides": {
-      "Distribution::Builder::Auto": "lib/Distribution/Builder/Auto.rakumod"
+      "Distribution::Builder::Auto": "lib/Distribution/Builder/Auto.rakumod",
+      "Gzz::Auto::Grammar": "lib/Gzz/Auto/Grammar.rakumod",
+      "Gzz::Auto::Common": "lib/Gzz/Auto/Common.rakumod"
   },
   "resources": [
       "doc/README.md",
@@ -27,12 +27,18 @@
       "doc/Distribution/Builder/Auto.html"
   ],
   "source-url": "https://github.com/grizzlysmit/Distribution-Builder-Auto.git",
-	"tags": [
-		"C++",
-		"CMake",
+  "support": {
+      "bugtracker": "https://github.com/grizzlysmit/gzzReadline/issues",
+      "source":     "https://github.com/grizzlysmit/gzzReadline.git",
+      "email":      "grizzly@smit.id.au"
+  },
+  "tags": [
+        "Automate",
+        "zef",
+        "fez",
         "Auto"
   ],
   "test-depends": [
   ],
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
