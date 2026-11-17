@@ -41,7 +41,7 @@ Distribution::Builder::Auto
 SUBTITLE
 ========
 
-A Raku module for running fairly arbitary scripts inside the META6.json files **build** key.
+A set of **Raku** module for running fairly arbitary scripts inside the META6.json files **build** key.
 
 COPYRIGHT
 =========
@@ -52,4 +52,6 @@ This library is free software; you can redistribute it and/or modify it under th
 
 Introduction
 ------------
+
+This is a set of **Raku** Modules for running faily arbitary scripts durring the **Raku** **zef** install process.
 

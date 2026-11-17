@@ -8,7 +8,7 @@ my %build = "actions" => {
                     '$source'              => "",
                     '$install-path-global' => "/usr/local/lib", 
                     '$install-path-local'  => '$*HOME/lib', 
-                    '$lib-name-master'     => "libtrail.so",
+                    '$lib-name-master'     => "libtrial.so",
                     '$master-lib-version'  => ".1.0.0",
                     '@lib-versions'        => [
                             [ ".1", ".1.0.0" ],
@@ -51,7 +51,8 @@ my %build = "actions" => {
                 '@body-paths' => [
                     {
                         '$type'               => "Man",
-                        '$man-number'         => "3",
+                        '$man-number'         => { 'value' => "3", 'type-spec' => 'Str', 'definedness' => 'D', 'var' => "const-var",
+                                                            'null' => False, 'perms' => "r", 'name' => '$man-number', 'raku-class' => True },
                         '$src-path'           => 'resources/doc/Distribution/Builder/Auto.$man-number',
                         '$global-install-dir' => '/usr/local/man/man$man-number/Distribution::Builder::Auto.$man-number',
                         '$local-install-dir'  => '$*HOME/man/man$man-number/Distribution::Builder::Auto.$man-number'
@@ -129,8 +130,8 @@ my %build = "actions" => {
                 ]
                 
             },
-            "debug"  => True,
-            "log"    => "/dev/tty";
+            "debug"  => False,
+            "log"    => "/dev/null";
 
 my %meta = Map.new: (:%build);
 
@@ -151,9 +152,9 @@ my Str:D $markup-install-location = "/usr/local/share/Distribution::Builder::Aut
 $markup-install-location = "$*HOME/share/Distribution::Builder::Auto" unless $*USER == 0 || $markup-install-location.IO ~~ :rwx;
 
 lives-ok({ $builder.build("$*CWD/t")}, "build process" );
-ok({ "$install-location/libtrail.so.1.0.0".IO.e }, "does libtrail.so.1.0.0 exist?");
-ok({ "$install-location/libtrail.so.1".IO.e }, "does libtrail.so.1 exist?");
-ok({ "$install-location/libtrail.so".IO.e }, "does libtrail.so exist?");
+ok({ "$install-location/libtrial.so.1.0.0".IO.e }, "does libtrial.so.1.0.0 exist?");
+ok({ "$install-location/libtrial.so.1".IO.e }, "does libtrial.so.1 exist?");
+ok({ "$install-location/libtrial.so".IO.e }, "does libtrial.so exist?");
 ok({ "$man-install-location/Distribution::Builder::Auto.$man-number".IO.e }, "does \`$man-install-location/Distribution::Builder::Auto.$man-number' exist?");
 ok({ "$html-install-location/Distribution::Builder::Auto.html".IO.e }, "does \`$html-install-location/Distribution::Builder::Auto.html' exist?");
 ok({ "$markup-install-location/README.md".IO.e }, "does \`$markup-install-location/README.md' exist?");

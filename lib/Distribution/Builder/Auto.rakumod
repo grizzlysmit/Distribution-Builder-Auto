@@ -26,7 +26,7 @@ Table of Contents
 =AUTHOR Francis Grizzly Smit (grizzly@smit.id.au)
 =VERSION 0.0.2
 =TITLE Distribution::Builder::Auto
-=SUBTITLE A Raku module for running fairly arbitary scripts inside the META6.json files B«build» key.
+=SUBTITLE A set of B<Raku> module for running fairly arbitary scripts inside the META6.json files B«build» key.
 
 =COPYRIGHT This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0 L<LICENSE|https://github.com/grizzlysmit/Distribution-Builder-Auto/blob/main/LICENSE>
 
@@ -35,7 +35,7 @@ L<Top of Document|#table-of-contents>
 
 =head2 Introduction
 
-
+This is a set of B<Raku> Modules for running faily arbitary scripts durring the B<Raku> B<zef> install process.
 
 
 
@@ -246,7 +246,7 @@ method build(IO() $work-dir = $*CWD --> Bool:D) {
             $log = $tmp.IO;
         } else {
             my IO::Handle:D $handle-tmp = "/dev/tty".IO.open: :append, :mode<rw>, :out-buffer(False);
-            $log = self.resolve-dir($tmp, $handle-tmp).IO;
+            $log = resolve-dir($tmp, $handle-tmp).IO;
         }
     }
     $log.dirname.IO.mkdir if $debug && $log.path !~~ rx@ ^^ '/dev/' .* $$ @;

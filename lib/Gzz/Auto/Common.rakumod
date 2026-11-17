@@ -133,7 +133,7 @@ sub isNumeric(Str:D $val --> Bool:D) {
             return .Bool;
         }
     }
-    my $tmp  = $val.Numeric.Bool;
+    my $tmp  = $val.Numeric;
     return True;
     #»»»
 }
@@ -265,7 +265,7 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                         my Str $val = eval-expr(%hash{$key}.Str);
                         my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                         my %arg2 = name => "$key", value => %hash{$key}, place => "$?FILE\[$?LINE\]: ";
-                        my %arg3 = name => '$val', value => $val, place => "$?FILE\[$?LINE\]: ";
+                        my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                         my @args = %arg1, %arg2, %arg3;
                         dd-handle(|@args);
                         # TODO: finish this #
@@ -340,8 +340,8 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     my Str $val = %value_<value>;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => '$val', value => $val, place => "$?FILE\[$?LINE\]: ";
-                                    my @args =  %arg1, %arg2;
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
+                                    my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type Str:D") if %value_<definedness> eq 'D';
@@ -353,13 +353,13 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'Str' #
                                 when 'Int' {
-                                    my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
-                                    my @args =  %arg1, %arg2, %arg3;
-                                    dd-handle(|@args);
                                     die-handle("$?FILE\[$?LINE\] Error: value is not Numeric") unless isNumeric(%value_<value>).Bool; 
                                     my Int $val = %value_<value>.Int;
+                                    my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
+                                    my @args =  %arg1, %arg2, %arg3;
+                                    dd-handle(|@args);
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type Int:D") if %value_<definedness> eq 'D'; 
                                         $val = Int;
@@ -370,12 +370,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'Int' #
                                 when 'Rat' {
+                                    my Rat $val = %value_<value>.Rat;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my Rat $val = %value_<value>.Rat;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type Rat:D") if %value_<definedness> eq 'D'; 
                                         $val = Rat;
@@ -386,12 +386,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'Rat' #
                                 when 'FatRat' {
+                                    my FatRat $val = %value_<value>.FatRat;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my FatRat $val = %value_<value>.FatRat;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type FatRat:D") if %value_<definedness> eq 'D';
                                         $val = FatRat;
@@ -402,11 +402,6 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'FatRat' #
                                 when 'Num' {
-                                    my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
-                                    my @args =  %arg1, %arg2, %arg3;
-                                    dd-handle(|@args);
                                     my Num $val = %value_<value>.Num;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type Num:D") if %value_<definedness> eq 'D'; 
@@ -418,12 +413,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'Num' #
                                 when 'Complex' {
+                                    my Complex $val = %value_<value>.Complex;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my Complex $val = %value_<value>.Complex;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type Complex:D") if %value_<definedness> eq 'D'; 
                                         $val = Complex;
@@ -434,13 +429,13 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'Complex' #
                                 when 'IntStr' {
-                                    my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
-                                    my @args =  %arg1, %arg2, %arg3;
-                                    dd-handle(|@args);
                                     die-handle("$?FILE\[$?LINE\] Error: value is not Numeric") unless isNumeric(%value_<value>).Bool; 
                                     my IntStr $val = %value_<value>.IntStr;
+                                    my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
+                                    my @args =  %arg1, %arg2, %arg3;
+                                    dd-handle(|@args);
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type IntStr:D") if %value_<definedness> eq 'D'; 
                                         $val = IntStr;
@@ -451,12 +446,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'IntStr' #
                                 when 'NumStr' {
+                                    my NumStr $val = %value_<value>.NumStr;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my NumStr $val = %value_<value>.NumStr;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type NumStr:D") if %value_<definedness> eq 'D'; 
                                         $val = NumStr;
@@ -467,12 +462,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'NumStr' #
                                 when 'RatStr' {
+                                    my RatStr $val = %value_<value>.RatStr;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my RatStr $val = %value_<value>.RatStr;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type RatStr:D") if %value_<definedness> eq 'D'; 
                                         $val = RatStr;
@@ -483,12 +478,12 @@ sub convert-hash-to-internal-format(%hash is copy --> Hash) is export {
                                     %hash{$key}<name>  = $key;
                                 } # when 'RatStr' #
                                 when 'ComplexStr' {
+                                    my ComplexStr $val = %value_<value>.ComplexStr;
                                     my %arg1 = name => '$key', value => $key, place => "$?FILE\[$?LINE\]: ";
                                     my %arg2 = name => "$key", value => %value_, place => "$?FILE\[$?LINE\]: ";
-                                    my %arg3 = name => "$key", value => %value_<value>, place => "$?FILE\[$?LINE\]: ";
+                                    my %arg3 = name => "$key", value => $val, place => "$?FILE\[$?LINE\]: ";
                                     my @args =  %arg1, %arg2, %arg3;
                                     dd-handle(|@args);
-                                    my ComplexStr $val = %value_<value>.ComplexStr;
                                     if %value_<null> {
                                         die-handle("$?FILE\[$?LINE\] Error: null value cannot exist in variable with type ComplexStr:D") if %value_<definedness> eq 'D'; 
                                         $val = ComplexStr;
@@ -1104,31 +1099,52 @@ sub our-variable(Variable:D $name, $value, Str:D :$type-spec is copy = 'Any', Va
     return True;
 }
 
-sub get-value(Variable:D $name) {
+sub get-value(Variable:D $name) is export {
     my %spec = resolve-symbol($name);
-    die-handle(qq<Error: may even not be a symbol.>) if all %spec<value var null type-spec raku-class>:exists;
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
     return %spec<value>;
 }
 
-sub let-variable(Variable:D $name, $value is copy = get-value($name), Str:D :$type-spec is copy = 'Any', VarType:D :$var is copy = variable,
-                        Str:D :$perms = 'rw', Bool:D :$raku-class is copy = True --> Bool:D) {
+sub get-var(Variable:D $name --> VarType:D) is export {
+    my %spec = resolve-symbol($name);
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
+    return %spec<var>;
+}
+
+sub get-raku-class(Variable:D $name --> Bool:D) is export {
+    my %spec = resolve-symbol($name);
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
+    return %spec<raku-class>;
+}
+
+sub get-perms(Variable:D $name --> Str:D) is export {
+    my %spec = resolve-symbol($name);
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
+    return %spec<perms>;
+}
+
+sub get-type-spec(Variable:D $name --> Str:D) is export {
+    my %spec = resolve-symbol($name);
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
+    return %spec<type-spec>;
+}
+
+sub get-definedness(Variable:D $name --> Str:D) is export {
+    my %spec = resolve-symbol($name);
+    die-handle(qq<Error: may even not be a symbol.>) unless all %spec<value var null type-spec raku-class perms definedness>:exists;
+    return %spec<definedness>;
+}
+
+sub let-variable(Variable:D $name, :$value is copy = get-value($name), Str:D :$type-spec is copy = get-type-spec($name), VarType:D :$var is copy = get-var($name),
+                        Str:D :$perms = get-perms($name), Bool:D :$raku-class is copy = get-raku-class($name), Str:D :$definedness = get-definedness($name) --> Bool:D) {
     my Str:D $def    = '';
-    my %scope-spec  = resolve-symbol($name);
-    if %scope-spec<var> ~~ unkown-var {
+    if $var ~~ unkown-var {
         return False;
-    } else {
-        $raku-class = %scope-spec<raku-class>;
-        #$value      = %scope-spec<value>;
-        $type-spec  = %scope-spec<type-spec>;
-        $def        = %scope-spec<definedness>;
-        #$var        = %scope-spec<var>;
-        #$type-spec  = $value.^name;
     }
     my Bool:D $null = True;
-    with $value {
-        $null = False;
-    }
-    my %spec = value => $value, type-spec => $type-spec, raku-class => $raku-class, null => $null, definedness => $def, var => $var, perms => $perms, name => $name;
+    $null = False with $value;
+
+    my %spec = value => $value, type-spec => $type-spec, raku-class => $raku-class, null => $null, definedness => $definedness, var => $var, perms => $perms, name => $name;
 
     @symbol-table[*-1]{$name} = %spec;
     return True;
@@ -1388,11 +1404,7 @@ sub access-array(IO::Handle $handle, @array, Str:D $access-spec, Bool:D :$debug 
     }
 } # sub access-array(IO::Handle $handle, @array, Str:D $access-spec, Bool:D :$debug = get-debug() --> Array) is export #
 
-multi sub resolve-dir(Any $dir, IO::Handle $handle, Bool $relitive-to-home = True --> False) is export {
-    die-handle("$?FILE\[$?LINE\] bad value");
-}
-
-multi sub resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home = True --> Str) is export {
+sub resolve-dir(Str:D $dir, IO::Handle $handle, Bool $relitive-to-home = True --> Str) is export {
     die-handle("$?FILE\[$?LINE\] bad value") without $dir;
     my Str $Dir = ~$dir;
     #$Dir.say;

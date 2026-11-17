@@ -1,3 +1,4 @@
+#!/usr/bin/env raku
 use v6.*;
 use Distribution::Builder::Auto;
 
@@ -6,7 +7,7 @@ my %build = "actions" => {
                     '$source'              => "",
                     '$install-path-global' => "/usr/local/lib", 
                     '$install-path-local'  => '$*HOME/lib', 
-                    '$lib-name-master'     => "libtrail.so",
+                    '$lib-name-master'     => "libtrial.so",
                     '$master-lib-version'  => ".1.0.0",
                     '@lib-versions'        => [
                             [ ".1", ".1.0.0" ],
@@ -49,7 +50,8 @@ my %build = "actions" => {
                 '@body-paths' => [
                     {
                         '$type'               => "Man",
-                        '$man-number'         => "3",
+                        '$man-number'         => { 'value' => "3", 'type-spec' => 'Str', 'definedness' => 'D', 'var' => "const-var",
+                                                            'null' => False, 'perms' => "r", 'name' => '$man-number', 'raku-class' => True }, 
                         '$src-path'           => 'resources/doc/Distribution/Builder/Auto.$man-number',
                         '$global-install-dir' => '/usr/local/man/man$man-number/Distribution::Builder::Auto.$man-number',
                         '$local-install-dir'  => '$*HOME/man/man$man-number/Distribution::Builder::Auto.$man-number'
@@ -127,8 +129,8 @@ my %build = "actions" => {
                 ]
                 
             },
-            "debug"  => True,
-            "log"    => "/dev/tty";
+            "debug"  => False,
+            "log"    => "/dev/null";
 
 my %meta = Map.new: (:%build);
 
